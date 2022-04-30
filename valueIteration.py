@@ -22,7 +22,7 @@ import copy
 """
 Implement your value iteration algorithm
 """
-# uSet = [(1,0),(0,1),(-1,0),(0,-1)]
+uSet = [(1,0),(0,1),(-1,0),(0,-1)]
 
 def valueIteration(gamma,cost,eta,gridname):
     """
@@ -34,9 +34,77 @@ def valueIteration(gamma,cost,eta,gridname):
     policy: Numpy array of (n,m) dimensions
     """
     error = 1e-3
-    values = None 
-    policy = None
-    iterations = None
+    if gridname == "small":
+        n, m, O, START, WINSTATE, LOSESTATE = smallGrid()
+    if gridname == "medium":
+        n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
+
+    policy = [[]]
+    values = np.zeros((n, m))
+    iterations = 0
+    delta = error + 1
+
+    while delta >= error:
+        delta = 0
+        for i in n:
+            for j in m:
+                value_action_map = {}
+                tmp = values[i][j]
+                #up
+                next_state = nextState((i, j), (0, 1), eta, O)
+                trans_prob = 1 - eta
+                if next_state == (i, j): # up is obstacle
+                    #check left
+                    if collisionCheck((i ,j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                up_next_value = trans_prob * values[next_state[0]][next_state[1]]
+                max_next_value = up_next_value
+                value_action_map[up_next_value] = (0, 1)
+
+                #left
+                next_state = nextState((i, j), (-1, 0), eta, O)
+                trans_prob = eta / 2
+                if next_state == (i, j): # left is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                left_next_value = trans_prob * values[next_state[0]][next_state[1]]
+                max_next_value = max(max_next_value, left_next_value)
+                value_action_map[left_next_value] = (-1, 0)
+
+                #right
+                next_state = nextState((i, j), (1, 0), eta, O)
+                trans_prob = eta / 2
+                if next_state == (i, j): # left is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check left
+                    if collisionCheck((i, j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                right_next_value = (eta / 2) * values[next_state[0]][next_state[1]]
+                max_next_value = max(max_next_value, right_next_value)
+                value_action_map[right_next_value] = (1, 0)
+                
+                #down
+                next_state = nextState((i, j), (0, -1), eta, O)
+                down_next_value = (0) * values[next_state[0]][next_state[1]]
+                max_next_value = max(max_next_value, down_next_value)
+                value_action_map[down_next_value] = (0, -1)
+
+                values[i][j] = max_next_value
+                delta = max(delta, abs(tmp - values[i][j]))
+
+                #optimal policy
+                policy[i].append(value_action_map[max_next_value])
+            policy.append([])
+            iterations = iterations + 1
     
     return values, policy, iterations
 
