@@ -168,7 +168,7 @@ def policyIteration(gamma,cost,eta,gridname):
     if gridname == "medium":
         n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
 
-    policy = [[(0, 0)] * m] * n
+    policy = [[(0, 1)] * m] * n
     values = np.zeros((n, m))
     iterations = 0
     delta = error + 1
@@ -178,88 +178,76 @@ def policyIteration(gamma,cost,eta,gridname):
         delta = 0
         for i in range(n):
             for j in range(m):
-                value_action_map = {}
                 tmp = values[i][j]
-                #up
-                real_next_state_x = i + 0
-                real_next_state_y = j + 1
-                #next_state = nextState((i, j), (0, 1), eta, O)
-                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
-                    #next_state = (i, j)
-                    real_next_state_x = i
-                    real_next_state_y = j
-                trans_prob = 1 - eta
-                if collisionCheck((i, j), (0, 1), O): # up is obstacle
-                    #check left
-                    if collisionCheck((i ,j), (-1, 0), O):
-                        trans_prob = trans_prob + (eta /2)
-                    #check right
-                    if collisionCheck((i, j), (1, 0), O):
-                        trans_prob = trans_prob + (eta /2)
-                rewards = trans_prob * cost_func([i, j], gridname)
-                up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
-                #max_next_value = up_next_value
-                value_action_map[up_next_value] = (0, 1)
+                if policy[i][j] == (0, 1):
+                    #up
+                    real_next_state_x = i + 0
+                    real_next_state_y = j + 1
+                    if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
+                        real_next_state_x = i
+                        real_next_state_y = j
+                    trans_prob = 1 - eta
+                    if collisionCheck((i, j), (0, 1), O): # up is obstacle
+                        #check left
+                        if collisionCheck((i ,j), (-1, 0), O):
+                            trans_prob = trans_prob + (eta /2)
+                        #check right
+                        if collisionCheck((i, j), (1, 0), O):
+                            trans_prob = trans_prob + (eta /2)
+                    rewards = trans_prob * cost_func([i, j], gridname)
+                    up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                    values[i][j] = up_next_value
 
-                #left
-                real_next_state_x = i + -1
-                real_next_state_y = j + 0
-                #next_state = nextState((i, j), (-1, 0), eta, O)
-                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    #next_state = (i, j)
-                    real_next_state_x = i
-                    real_next_state_y = j
-                trans_prob = eta / 2
-                if collisionCheck((i, j), (-1, 0), O): # left is obstacle
-                    #check up
-                    if collisionCheck((i ,j), (0, 1), O):
-                        trans_prob = trans_prob + (1 - eta)
-                    #check right
-                    if collisionCheck((i, j), (1, 0), O):
-                        trans_prob = trans_prob + (eta /2)
-                rewards = trans_prob * cost_func([i, j], gridname)
-                left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
-                #max_next_value = max(max_next_value, left_next_value)
-                value_action_map[left_next_value] = (-1, 0)
+                if policy[i][j] == (-1, 0):
+                    #left
+                    real_next_state_x = i + -1
+                    real_next_state_y = j + 0
+                    if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                        real_next_state_x = i
+                        real_next_state_y = j
+                    trans_prob = eta / 2
+                    if collisionCheck((i, j), (-1, 0), O): # left is obstacle
+                        #check up
+                        if collisionCheck((i ,j), (0, 1), O):
+                            trans_prob = trans_prob + (1 - eta)
+                        #check right
+                        if collisionCheck((i, j), (1, 0), O):
+                            trans_prob = trans_prob + (eta /2)
+                    rewards = trans_prob * cost_func([i, j], gridname)
+                    left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                    values[i][j] = left_next_value
 
-                #right
-                real_next_state_x = i + 1
-                real_next_state_y = j + 0
-                #next_state = nextState((i, j), (1, 0), eta, O)
-                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    #next_state = (i, j)
-                    real_next_state_x = i
-                    real_next_state_y = j
-                trans_prob = eta / 2
-                if collisionCheck((i, j), (1, 0), O): # right is obstacle
-                    #check up
-                    if collisionCheck((i ,j), (0, 1), O):
-                        trans_prob = trans_prob + (1 - eta)
-                    #check left
-                    if collisionCheck((i, j), (-1, 0), O):
-                        trans_prob = trans_prob + (eta /2)
-                rewards = trans_prob * cost_func([i, j], gridname)
-                right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
-                #max_next_value = max(max_next_value, right_next_value)
-                value_action_map[right_next_value] = (1, 0)
-                
-                #down
-                real_next_state_x = i + 0
-                real_next_state_y = j - 1
-                #next_state = nextState((i, j), (0, -1), eta, O)
-                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    #next_state = (i, j)
-                    real_next_state_x = i
-                    real_next_state_y = j
-                rewards = (0) * cost_func([i, j], gridname)
-                down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
-                #max_next_value = max(max_next_value, down_next_value)
-                value_action_map[down_next_value] = (0, -1)
+                if policy[i][j] == (1, 0):
+                    #right
+                    real_next_state_x = i + 1
+                    real_next_state_y = j + 0
+                    if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                        real_next_state_x = i
+                        real_next_state_y = j
+                    trans_prob = eta / 2
+                    if collisionCheck((i, j), (1, 0), O): # right is obstacle
+                        #check up
+                        if collisionCheck((i ,j), (0, 1), O):
+                            trans_prob = trans_prob + (1 - eta)
+                        #check left
+                        if collisionCheck((i, j), (-1, 0), O):
+                            trans_prob = trans_prob + (eta /2)
+                    rewards = trans_prob * cost_func([i, j], gridname)
+                    right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                    values[i][j] = right_next_value
 
-                sum_next_value = up_next_value + left_next_value + right_next_value + down_next_value
-                values[i][j] = sum_next_value
+                if policy[i][j] == (0, -1):
+                    #down
+                    real_next_state_x = i + 0
+                    real_next_state_y = j - 1
+                    if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                        real_next_state_x = i
+                        real_next_state_y = j
+                    rewards = (0) * cost_func([i, j], gridname)
+                    down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
+                    values[i][j] = down_next_value
 
-                delta = max(delta, abs(tmp - sum_next_value))
+                delta = max(delta, abs(tmp - values[i][j]))
 
     #policy  improvement
     for i in range(n):
@@ -269,9 +257,7 @@ def policyIteration(gamma,cost,eta,gridname):
                 #up
                 real_next_state_x = i + 0
                 real_next_state_y = j + 1
-                #next_state = nextState((i, j), (0, 1), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
-                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 trans_prob = 1 - eta
@@ -284,18 +270,15 @@ def policyIteration(gamma,cost,eta,gridname):
                         trans_prob = trans_prob + (eta /2)
                 rewards = trans_prob * cost_func([i, j], gridname)
                 up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
-                #max_next_value = up_next_value
-                value_action_map[up_next_value] = (0, 1)
                 
                 if up_next_value > tmp and policy[i][j] != (0, 1):
                     policy[i][j] = (0, 1)
                     tmp = up_next_value
+                
                 #left
                 real_next_state_x = i + -1
                 real_next_state_y = j + 0
-                #next_state = nextState((i, j), (-1, 0), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 trans_prob = eta / 2
@@ -308,8 +291,6 @@ def policyIteration(gamma,cost,eta,gridname):
                         trans_prob = trans_prob + (eta /2)
                 rewards = trans_prob * cost_func([i, j], gridname)
                 left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
-                #max_next_value = max(max_next_value, left_next_value)
-                value_action_map[left_next_value] = (-1, 0)
                 
                 if left_next_value > tmp and policy[i][j] != (-1, 0):
                     policy[i][j] = (-1, 0)
@@ -318,9 +299,7 @@ def policyIteration(gamma,cost,eta,gridname):
                 #right
                 real_next_state_x = i + 1
                 real_next_state_y = j + 0
-                #next_state = nextState((i, j), (1, 0), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 trans_prob = eta / 2
@@ -333,8 +312,6 @@ def policyIteration(gamma,cost,eta,gridname):
                         trans_prob = trans_prob + (eta /2)
                 rewards = trans_prob * cost_func([i, j], gridname)
                 right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
-                #max_next_value = max(max_next_value, right_next_value)
-                value_action_map[right_next_value] = (1, 0)
                 
                 if right_next_value > tmp and policy[i][j] != (1, 0):
                     policy[i][j] = (1, 0)
@@ -343,15 +320,11 @@ def policyIteration(gamma,cost,eta,gridname):
                 #down
                 real_next_state_x = i + 0
                 real_next_state_y = j - 1
-                #next_state = nextState((i, j), (0, -1), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 rewards = (0) * cost_func([i, j], gridname)
                 down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
-                #max_next_value = max(max_next_value, down_next_value)
-                value_action_map[down_next_value] = (0, -1)
 
                 if down_next_value > tmp and policy[i][j] != (0, -1):
                     policy[i][j] = (0, -1)
@@ -447,6 +420,7 @@ if __name__ == '__main__':
     """
     # Case 1:
     """
+    print("########## Case 1 ##########")
     #gridname = 'medium'
     gridname = 'small'
     values, policy, iterations = valueIteration(0.9, "cost", 0.2, "small")
@@ -501,19 +475,14 @@ if __name__ == '__main__':
     #print(f"policy: {policy}")
     print(f"gamma: {0.1}, eta: {0.9}, iterations: {iterations}")
     #values, policy, iterations = valueIteration(0.9, "cost", 0.8, "small")
-    #print(f"values: {values}")
-    #print(f"policy: {policy}")
-    #print(f"gamma: {0.9}, eta: {0.8}, iterations: {iterations}")
-    # values, policy = policyIteration()
 
-    #values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
-    #print(f"values: {values}")
-    #print(f"policy: {policy}")
-    #print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
-    # values, policy = policyIteration()
     """
     #Case 2
     """
+    print("########## Case 2 ##########")
+    values, policy, iterations = policyIteration(0.9, "cost", 0.2, "small")
+    print(f"gamma: {0.9}, eta: {0.2}, iterations: {iterations}")
+
     """
     # Case 3
     """
