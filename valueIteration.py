@@ -60,13 +60,13 @@ def valueIteration(gamma,cost,eta,gridname):
                 #up
                 real_next_state_x = i + 0
                 real_next_state_y = j + 1
-                next_state = nextState((i, j), (0, 1), eta, O)
+                #next_state = nextState((i, j), (0, 1), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
-                    next_state = (i, j)
+                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 trans_prob = 1 - eta
-                if next_state == (i, j): # up is obstacle
+                if collisionCheck((i, j), (0, 1), O): # up is obstacle
                     #check left
                     if collisionCheck((i ,j), (-1, 0), O):
                         trans_prob = trans_prob + (eta /2)
@@ -81,13 +81,13 @@ def valueIteration(gamma,cost,eta,gridname):
                 #left
                 real_next_state_x = i + -1
                 real_next_state_y = j + 0
-                next_state = nextState((i, j), (-1, 0), eta, O)
+                #next_state = nextState((i, j), (-1, 0), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    next_state = (i, j)
+                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 trans_prob = eta / 2
-                if next_state == (i, j): # left is obstacle
+                if collisionCheck((i, j), (-1, 0), O): # left is obstacle
                     #check up
                     if collisionCheck((i ,j), (0, 1), O):
                         trans_prob = trans_prob + (1 - eta)
@@ -102,13 +102,13 @@ def valueIteration(gamma,cost,eta,gridname):
                 #right
                 real_next_state_x = i + 1
                 real_next_state_y = j + 0
-                next_state = nextState((i, j), (1, 0), eta, O)
+                #next_state = nextState((i, j), (1, 0), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    next_state = (i, j)
+                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 trans_prob = eta / 2
-                if next_state == (i, j): # right is obstacle
+                if collisionCheck((i, j), (1, 0), O): # right is obstacle
                     #check up
                     if collisionCheck((i ,j), (0, 1), O):
                         trans_prob = trans_prob + (1 - eta)
@@ -123,9 +123,9 @@ def valueIteration(gamma,cost,eta,gridname):
                 #down
                 real_next_state_x = i + 0
                 real_next_state_y = j - 1
-                next_state = nextState((i, j), (0, -1), eta, O)
+                #next_state = nextState((i, j), (0, -1), eta, O)
                 if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
-                    next_state = (i, j)
+                    #next_state = (i, j)
                     real_next_state_x = i
                     real_next_state_y = j
                 rewards = (0) * cost_func([i, j], gridname)
@@ -257,22 +257,62 @@ if __name__ == '__main__':
     #print(f"policy: {policy}")
     print(f"gamma: {0.9}, eta: {0.2}, iterations: {iterations}")
     
-    #values, policy, iterations = valueIteration(0.5, "cost", 0.2, "small")
+    values, policy, iterations = valueIteration(0.5, "cost", 0.2, "small")
     #print(f"values: {values}")
     #print(f"policy: {policy}")
-    #print(f"gamma: {0.5}, eta: {0.2}, iterations: {iterations}")
+    print(f"gamma: {0.5}, eta: {0.2}, iterations: {iterations}")
     # values, policy = policyIteration()
 
+    values, policy, iterations = valueIteration(0.1, "cost", 0.2, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.1}, eta: {0.2}, iterations: {iterations}")
+
+
+
+    values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
+    
+    values, policy, iterations = valueIteration(0.5, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.5}, eta: {0.5}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    values, policy, iterations = valueIteration(0.1, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.1}, eta: {0.5}, iterations: {iterations}")
+
+
+
+    values, policy, iterations = valueIteration(0.9, "cost", 0.9, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.9}, eta: {0.9}, iterations: {iterations}")
+    
+    values, policy, iterations = valueIteration(0.5, "cost", 0.9, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.5}, eta: {0.9}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    values, policy, iterations = valueIteration(0.1, "cost", 0.9, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.1}, eta: {0.9}, iterations: {iterations}")
     #values, policy, iterations = valueIteration(0.9, "cost", 0.8, "small")
     #print(f"values: {values}")
     #print(f"policy: {policy}")
     #print(f"gamma: {0.9}, eta: {0.8}, iterations: {iterations}")
     # values, policy = policyIteration()
 
-    values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
+    #values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
     #print(f"values: {values}")
     #print(f"policy: {policy}")
-    print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
+    #print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
     # values, policy = policyIteration()
     """
     #Case 2
