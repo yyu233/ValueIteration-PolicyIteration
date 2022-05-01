@@ -58,9 +58,13 @@ def valueIteration(gamma,cost,eta,gridname):
                 value_action_map = {}
                 tmp = values[i][j]
                 #up
+                real_next_state_x = i + 0
+                real_next_state_y = j + 1
                 next_state = nextState((i, j), (0, 1), eta, O)
-                if next_state[0] < 0  or next_state[0] >= n or next_state[1] < 0 or next_state[1] >= m: #boundary of grid
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
                     next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
                 trans_prob = 1 - eta
                 if next_state == (i, j): # up is obstacle
                     #check left
@@ -70,14 +74,18 @@ def valueIteration(gamma,cost,eta,gridname):
                     if collisionCheck((i, j), (1, 0), O):
                         trans_prob = trans_prob + (eta /2)
                 rewards = trans_prob * cost_func([i, j], gridname)
-                up_next_value = rewards + gamma * trans_prob * values[next_state[0]][next_state[1]]
+                up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 max_next_value = up_next_value
                 value_action_map[up_next_value] = (0, 1)
 
                 #left
+                real_next_state_x = i + -1
+                real_next_state_y = j + 0
                 next_state = nextState((i, j), (-1, 0), eta, O)
-                if next_state[0] < 0  or next_state[0] >= n or next_state[1] < 0 or next_state[1] >= m: #boundary of grid
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
                     next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
                 trans_prob = eta / 2
                 if next_state == (i, j): # left is obstacle
                     #check up
@@ -87,14 +95,18 @@ def valueIteration(gamma,cost,eta,gridname):
                     if collisionCheck((i, j), (1, 0), O):
                         trans_prob = trans_prob + (eta /2)
                 rewards = trans_prob * cost_func([i, j], gridname)
-                left_next_value = rewards + gamma * trans_prob * values[next_state[0]][next_state[1]]
+                left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 max_next_value = max(max_next_value, left_next_value)
                 value_action_map[left_next_value] = (-1, 0)
 
                 #right
+                real_next_state_x = i + 1
+                real_next_state_y = j + 0
                 next_state = nextState((i, j), (1, 0), eta, O)
-                if next_state[0] < 0 or next_state[0] >= n or next_state[1] < 0 or next_state[1] >= m: #boundary of grid
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
                     next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
                 trans_prob = eta / 2
                 if next_state == (i, j): # right is obstacle
                     #check up
@@ -104,16 +116,20 @@ def valueIteration(gamma,cost,eta,gridname):
                     if collisionCheck((i, j), (-1, 0), O):
                         trans_prob = trans_prob + (eta /2)
                 rewards = trans_prob * cost_func([i, j], gridname)
-                right_next_value = rewards + gamma * trans_prob * values[next_state[0]][next_state[1]]
+                right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 max_next_value = max(max_next_value, right_next_value)
                 value_action_map[right_next_value] = (1, 0)
                 
                 #down
+                real_next_state_x = i + 0
+                real_next_state_y = j - 1
                 next_state = nextState((i, j), (0, -1), eta, O)
-                if next_state[0] < 0 or next_state[0] >= n or next_state[1] < 0 or next_state[1] >= m: #boundary of grid
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
                     next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
                 rewards = (0) * cost_func([i, j], gridname)
-                down_next_value = rewards + gamma * (0) * values[next_state[0]][next_state[1]]
+                down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
                 max_next_value = max(max_next_value, down_next_value)
                 value_action_map[down_next_value] = (0, -1)
 
@@ -241,16 +257,22 @@ if __name__ == '__main__':
     #print(f"policy: {policy}")
     print(f"gamma: {0.9}, eta: {0.2}, iterations: {iterations}")
     
-    values, policy, iterations = valueIteration(0.5, "cost", 0.2, "small")
+    #values, policy, iterations = valueIteration(0.5, "cost", 0.2, "small")
     #print(f"values: {values}")
     #print(f"policy: {policy}")
-    print(f"gamma: {0.5}, eta: {0.2}, iterations: {iterations}")
+    #print(f"gamma: {0.5}, eta: {0.2}, iterations: {iterations}")
     # values, policy = policyIteration()
 
-    #values, policy, iterations = valueIteration(0.9, "cost", 0.2, "small")
+    #values, policy, iterations = valueIteration(0.9, "cost", 0.8, "small")
     #print(f"values: {values}")
     #print(f"policy: {policy}")
-    #print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
+    #print(f"gamma: {0.9}, eta: {0.8}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
     # values, policy = policyIteration()
     """
     #Case 2
