@@ -157,9 +157,206 @@ def policyIteration(gamma,cost,eta,gridname):
     policy: Numpy array of (n,m) dimensions
     """
     error = 1e-3
-    values = None 
-    policy = None
-    iterations = None
+
+    if cost == "cost":
+        cost_func = getCost
+    else:
+        cost_func = getCostBridge
+
+    if gridname == "small":
+        n, m, O, START, WINSTATE, LOSESTATE = smallGrid()
+    if gridname == "medium":
+        n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
+
+    policy = [[(0, 0)] * m] * n
+    values = np.zeros((n, m))
+    iterations = 0
+    delta = error + 1
+
+    while delta >= error:
+        iterations = iterations + 1
+        delta = 0
+        for i in range(n):
+            for j in range(m):
+                value_action_map = {}
+                tmp = values[i][j]
+                #up
+                real_next_state_x = i + 0
+                real_next_state_y = j + 1
+                #next_state = nextState((i, j), (0, 1), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = 1 - eta
+                if collisionCheck((i, j), (0, 1), O): # up is obstacle
+                    #check left
+                    if collisionCheck((i ,j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                #max_next_value = up_next_value
+                value_action_map[up_next_value] = (0, 1)
+
+                #left
+                real_next_state_x = i + -1
+                real_next_state_y = j + 0
+                #next_state = nextState((i, j), (-1, 0), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = eta / 2
+                if collisionCheck((i, j), (-1, 0), O): # left is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                #max_next_value = max(max_next_value, left_next_value)
+                value_action_map[left_next_value] = (-1, 0)
+
+                #right
+                real_next_state_x = i + 1
+                real_next_state_y = j + 0
+                #next_state = nextState((i, j), (1, 0), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = eta / 2
+                if collisionCheck((i, j), (1, 0), O): # right is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check left
+                    if collisionCheck((i, j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                #max_next_value = max(max_next_value, right_next_value)
+                value_action_map[right_next_value] = (1, 0)
+                
+                #down
+                real_next_state_x = i + 0
+                real_next_state_y = j - 1
+                #next_state = nextState((i, j), (0, -1), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                rewards = (0) * cost_func([i, j], gridname)
+                down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
+                #max_next_value = max(max_next_value, down_next_value)
+                value_action_map[down_next_value] = (0, -1)
+
+                sum_next_value = up_next_value + left_next_value + right_next_value + down_next_value
+                values[i][j] = sum_next_value
+
+                delta = max(delta, abs(tmp - sum_next_value))
+
+    #policy  improvement
+    for i in range(n):
+        for j in range(m):
+                value_action_map = {}
+                tmp = values[i][j]
+                #up
+                real_next_state_x = i + 0
+                real_next_state_y = j + 1
+                #next_state = nextState((i, j), (0, 1), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = 1 - eta
+                if collisionCheck((i, j), (0, 1), O): # up is obstacle
+                    #check left
+                    if collisionCheck((i ,j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                #max_next_value = up_next_value
+                value_action_map[up_next_value] = (0, 1)
+                
+                if up_next_value > tmp and policy[i][j] != (0, 1):
+                    policy[i][j] = (0, 1)
+                    tmp = up_next_value
+                #left
+                real_next_state_x = i + -1
+                real_next_state_y = j + 0
+                #next_state = nextState((i, j), (-1, 0), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = eta / 2
+                if collisionCheck((i, j), (-1, 0), O): # left is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                #max_next_value = max(max_next_value, left_next_value)
+                value_action_map[left_next_value] = (-1, 0)
+                
+                if left_next_value > tmp and policy[i][j] != (-1, 0):
+                    policy[i][j] = (-1, 0)
+                    tmp = left_next_value   
+                
+                #right
+                real_next_state_x = i + 1
+                real_next_state_y = j + 0
+                #next_state = nextState((i, j), (1, 0), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = eta / 2
+                if collisionCheck((i, j), (1, 0), O): # right is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check left
+                    if collisionCheck((i, j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                #max_next_value = max(max_next_value, right_next_value)
+                value_action_map[right_next_value] = (1, 0)
+                
+                if right_next_value > tmp and policy[i][j] != (1, 0):
+                    policy[i][j] = (1, 0)
+                    tmp = right_next_value
+
+                #down
+                real_next_state_x = i + 0
+                real_next_state_y = j - 1
+                #next_state = nextState((i, j), (0, -1), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                rewards = (0) * cost_func([i, j], gridname)
+                down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
+                #max_next_value = max(max_next_value, down_next_value)
+                value_action_map[down_next_value] = (0, -1)
+
+                if down_next_value > tmp and policy[i][j] != (0, -1):
+                    policy[i][j] = (0, -1)
+                    tmp = down_next_value
+
     
     return values, policy, iterations
 
