@@ -24,6 +24,11 @@ Implement your value iteration algorithm
 """
 uSet = [(1,0),(0,1),(-1,0),(0,-1)]
 
+RIGHT = 0
+UP = 1
+LEFT = 2
+DOWN = 3
+
 def valueIteration(gamma,cost,eta,gridname):
     """
     Implement value iteration with a discount factor gamma and 
@@ -76,7 +81,7 @@ def valueIteration(gamma,cost,eta,gridname):
                 rewards = trans_prob * cost_func([i, j], gridname)
                 up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 max_next_value = up_next_value
-                value_action_map[up_next_value] = (0, 1)
+                value_action_map[up_next_value] = UP
 
                 #left
                 real_next_state_x = i + -1
@@ -97,7 +102,7 @@ def valueIteration(gamma,cost,eta,gridname):
                 rewards = trans_prob * cost_func([i, j], gridname)
                 left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 max_next_value = max(max_next_value, left_next_value)
-                value_action_map[left_next_value] = (-1, 0)
+                value_action_map[left_next_value] = LEFT
 
                 #right
                 real_next_state_x = i + 1
@@ -118,7 +123,7 @@ def valueIteration(gamma,cost,eta,gridname):
                 rewards = trans_prob * cost_func([i, j], gridname)
                 right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 max_next_value = max(max_next_value, right_next_value)
-                value_action_map[right_next_value] = (1, 0)
+                value_action_map[right_next_value] = RIGHT
                 
                 #down
                 real_next_state_x = i + 0
@@ -131,7 +136,7 @@ def valueIteration(gamma,cost,eta,gridname):
                 rewards = (0) * cost_func([i, j], gridname)
                 down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
                 max_next_value = max(max_next_value, down_next_value)
-                value_action_map[down_next_value] = (0, -1)
+                value_action_map[down_next_value] = DOWN
 
                 values[i][j] = max_next_value
                 delta = max(delta, abs(tmp - values[i][j]))
@@ -168,7 +173,7 @@ def policyIteration(gamma,cost,eta,gridname):
     if gridname == "medium":
         n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
 
-    policy = [[(0, 1)] * m] * n
+    policy = [[RIGHT] * m] * n
     values = np.zeros((n, m))
     iterations = 0
     delta = error + 1
@@ -179,7 +184,7 @@ def policyIteration(gamma,cost,eta,gridname):
         for i in range(n):
             for j in range(m):
                 tmp = values[i][j]
-                if policy[i][j] == (0, 1):
+                if policy[i][j] == UP:
                     #up
                     real_next_state_x = i + 0
                     real_next_state_y = j + 1
@@ -198,7 +203,7 @@ def policyIteration(gamma,cost,eta,gridname):
                     up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                     values[i][j] = up_next_value
 
-                if policy[i][j] == (-1, 0):
+                if policy[i][j] == LEFT:
                     #left
                     real_next_state_x = i + -1
                     real_next_state_y = j + 0
@@ -217,7 +222,7 @@ def policyIteration(gamma,cost,eta,gridname):
                     left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                     values[i][j] = left_next_value
 
-                if policy[i][j] == (1, 0):
+                if policy[i][j] == RIGHT:
                     #right
                     real_next_state_x = i + 1
                     real_next_state_y = j + 0
@@ -236,7 +241,7 @@ def policyIteration(gamma,cost,eta,gridname):
                     right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                     values[i][j] = right_next_value
 
-                if policy[i][j] == (0, -1):
+                if policy[i][j] == DOWN:
                     #down
                     real_next_state_x = i + 0
                     real_next_state_y = j - 1
@@ -252,7 +257,6 @@ def policyIteration(gamma,cost,eta,gridname):
     #policy  improvement
     for i in range(n):
         for j in range(m):
-                value_action_map = {}
                 tmp = values[i][j]
                 #up
                 real_next_state_x = i + 0
@@ -271,8 +275,8 @@ def policyIteration(gamma,cost,eta,gridname):
                 rewards = trans_prob * cost_func([i, j], gridname)
                 up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 
-                if up_next_value > tmp and policy[i][j] != (0, 1):
-                    policy[i][j] = (0, 1)
+                if up_next_value > tmp and policy[i][j] != UP:
+                    policy[i][j] = UP
                     tmp = up_next_value
                 
                 #left
@@ -292,8 +296,8 @@ def policyIteration(gamma,cost,eta,gridname):
                 rewards = trans_prob * cost_func([i, j], gridname)
                 left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 
-                if left_next_value > tmp and policy[i][j] != (-1, 0):
-                    policy[i][j] = (-1, 0)
+                if left_next_value > tmp and policy[i][j] != LEFT:
+                    policy[i][j] = LEFT
                     tmp = left_next_value   
                 
                 #right
@@ -313,8 +317,8 @@ def policyIteration(gamma,cost,eta,gridname):
                 rewards = trans_prob * cost_func([i, j], gridname)
                 right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
                 
-                if right_next_value > tmp and policy[i][j] != (1, 0):
-                    policy[i][j] = (1, 0)
+                if right_next_value > tmp and policy[i][j] != RIGHT:
+                    policy[i][j] = RIGHT
                     tmp = right_next_value
 
                 #down
@@ -326,8 +330,8 @@ def policyIteration(gamma,cost,eta,gridname):
                 rewards = (0) * cost_func([i, j], gridname)
                 down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
 
-                if down_next_value > tmp and policy[i][j] != (0, -1):
-                    policy[i][j] = (0, -1)
+                if down_next_value > tmp and policy[i][j] != DOWN:
+                    policy[i][j] = DOWN
                     tmp = down_next_value
 
     
@@ -397,7 +401,7 @@ def showValues(n,m,values,O):
             if isObstacle((i,jind),O):
                 out += 'Obs' + ' | '
             else:
-                out += str(values[i,jind]) + ' | '
+                out += str(values[i][jind]) + ' | '
         print(out)
     print(string)    
 
@@ -486,6 +490,24 @@ if __name__ == '__main__':
     """
     # Case 3
     """
+    print("########## Case 3 ##########")
+    n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
+
+    values, policy, iterations = valueIteration(0.9, "cost", 0.2, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = valueIteration(0.5, "cost", 0.2, "medium")
+    print(f"gamma: {0.5}, eta: {0.2}, \npolicy: {policy}")
+
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = valueIteration(0.2, "cost", 0.2, "medium")
+    print(f"gamma: {0.2}, eta: {0.2}, \npolicy: {policy}")
+
+    showValues(n, m, policy, O)
+
     """
     # Case 4
     """
@@ -508,7 +530,60 @@ if __name__ == '__main__':
     # plotValues(grid*values,xI,xG,n,m,O)
     # path = [[2,1],[3,1],[4,1],[4,2],[4,3]]
     # showPath(xI,xG,path,n,m,O)
+    print("########## Case 4 ##########")
+    n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
 
-    
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.1, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
 
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.2, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.3, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.4, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.5, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.6, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.7, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.8, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
+
+    values, policy, iterations = policyIteration(0.9, "bridge", 0.9, "medium")
+    print(f"gamma: {0.9}, eta: {0.2}, \npolicy: {policy}")
+    print(f"close exit: {CLOSEEXIT}")
+    print(f"distant exit: {DISTANTEXIT}")
+    showValues(n, m, policy, O)
     # plt.show()
