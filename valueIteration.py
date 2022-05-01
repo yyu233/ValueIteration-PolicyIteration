@@ -22,7 +22,7 @@ import copy
 """
 Implement your value iteration algorithm
 """
-# uSet = [(1,0),(0,1),(-1,0),(0,-1)]
+uSet = [(1,0),(0,1),(-1,0),(0,-1)]
 
 def valueIteration(gamma,cost,eta,gridname):
     """
@@ -34,9 +34,113 @@ def valueIteration(gamma,cost,eta,gridname):
     policy: Numpy array of (n,m) dimensions
     """
     error = 1e-3
-    values = None 
-    policy = None
-    iterations = None
+
+    if cost == "cost":
+        cost_func = getCost
+    else:
+        cost_func = getCostBridge
+
+    if gridname == "small":
+        n, m, O, START, WINSTATE, LOSESTATE = smallGrid()
+    if gridname == "medium":
+        n, m, O, START, DISTANTEXIT, CLOSEEXIT, LOSESTATES = mediumGrid()
+
+    policy = [[]]
+    values = np.zeros((n, m))
+    iterations = 0
+    delta = error + 1
+
+    while delta >= error:
+        iterations = iterations + 1
+        delta = 0
+        for i in range(n):
+            for j in range(m):
+                value_action_map = {}
+                tmp = values[i][j]
+                #up
+                real_next_state_x = i + 0
+                real_next_state_y = j + 1
+                #next_state = nextState((i, j), (0, 1), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m: #boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = 1 - eta
+                if collisionCheck((i, j), (0, 1), O): # up is obstacle
+                    #check left
+                    if collisionCheck((i ,j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                up_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                max_next_value = up_next_value
+                value_action_map[up_next_value] = (0, 1)
+
+                #left
+                real_next_state_x = i + -1
+                real_next_state_y = j + 0
+                #next_state = nextState((i, j), (-1, 0), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = eta / 2
+                if collisionCheck((i, j), (-1, 0), O): # left is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check right
+                    if collisionCheck((i, j), (1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                left_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                max_next_value = max(max_next_value, left_next_value)
+                value_action_map[left_next_value] = (-1, 0)
+
+                #right
+                real_next_state_x = i + 1
+                real_next_state_y = j + 0
+                #next_state = nextState((i, j), (1, 0), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                trans_prob = eta / 2
+                if collisionCheck((i, j), (1, 0), O): # right is obstacle
+                    #check up
+                    if collisionCheck((i ,j), (0, 1), O):
+                        trans_prob = trans_prob + (1 - eta)
+                    #check left
+                    if collisionCheck((i, j), (-1, 0), O):
+                        trans_prob = trans_prob + (eta /2)
+                rewards = trans_prob * cost_func([i, j], gridname)
+                right_next_value = rewards + gamma * trans_prob * values[real_next_state_x][real_next_state_y]
+                max_next_value = max(max_next_value, right_next_value)
+                value_action_map[right_next_value] = (1, 0)
+                
+                #down
+                real_next_state_x = i + 0
+                real_next_state_y = j - 1
+                #next_state = nextState((i, j), (0, -1), eta, O)
+                if real_next_state_x < 0 or real_next_state_x >= n or real_next_state_y < 0 or real_next_state_y >= m:#boundary of grid
+                    #next_state = (i, j)
+                    real_next_state_x = i
+                    real_next_state_y = j
+                rewards = (0) * cost_func([i, j], gridname)
+                down_next_value = rewards + gamma * (0) * values[real_next_state_x][real_next_state_y]
+                max_next_value = max(max_next_value, down_next_value)
+                value_action_map[down_next_value] = (0, -1)
+
+                values[i][j] = max_next_value
+                delta = max(delta, abs(tmp - values[i][j]))
+                #optimal policy
+                policy[i].append(value_action_map[max_next_value])
+            if len(policy) < n:
+                policy.append([])
+        #print(delta)
+
     
     return values, policy, iterations
 
@@ -146,8 +250,70 @@ if __name__ == '__main__':
     """
     # Case 1:
     """
-    gridname = 'medium'
-    # values, policy = policyIteration() 
+    #gridname = 'medium'
+    gridname = 'small'
+    values, policy, iterations = valueIteration(0.9, "cost", 0.2, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.9}, eta: {0.2}, iterations: {iterations}")
+    
+    values, policy, iterations = valueIteration(0.5, "cost", 0.2, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.5}, eta: {0.2}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    values, policy, iterations = valueIteration(0.1, "cost", 0.2, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.1}, eta: {0.2}, iterations: {iterations}")
+
+
+
+    values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
+    
+    values, policy, iterations = valueIteration(0.5, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.5}, eta: {0.5}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    values, policy, iterations = valueIteration(0.1, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.1}, eta: {0.5}, iterations: {iterations}")
+
+
+
+    values, policy, iterations = valueIteration(0.9, "cost", 0.9, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.9}, eta: {0.9}, iterations: {iterations}")
+    
+    values, policy, iterations = valueIteration(0.5, "cost", 0.9, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.5}, eta: {0.9}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    values, policy, iterations = valueIteration(0.1, "cost", 0.9, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    print(f"gamma: {0.1}, eta: {0.9}, iterations: {iterations}")
+    #values, policy, iterations = valueIteration(0.9, "cost", 0.8, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    #print(f"gamma: {0.9}, eta: {0.8}, iterations: {iterations}")
+    # values, policy = policyIteration()
+
+    #values, policy, iterations = valueIteration(0.9, "cost", 0.5, "small")
+    #print(f"values: {values}")
+    #print(f"policy: {policy}")
+    #print(f"gamma: {0.9}, eta: {0.5}, iterations: {iterations}")
+    # values, policy = policyIteration()
     """
     #Case 2
     """
@@ -158,24 +324,24 @@ if __name__ == '__main__':
     # Case 4
     """
     
-    # Sample use of plotValues from gridWorld
-    values = np.zeros((n,m))
-    # Loop through values to just assign some dummy/arbitrary data
-    for i in range(n):
-        for j in range(m):
-            if not(isObstacle((i,j),O)):
-                values[i][j] = (n+2*m-2) - (i + 2*j)
-    # This will print those numeric values as console text
-    showValues(n,m,values,O)
+    # # Sample use of plotValues from gridWorld
+    # values = np.zeros((n,m))
+    # # Loop through values to just assign some dummy/arbitrary data
+    # for i in range(n):
+    #     for j in range(m):
+    #         if not(isObstacle((i,j),O)):
+    #             values[i][j] = (n+2*m-2) - (i + 2*j)
+    # # This will print those numeric values as console text
+    # showValues(n,m,values,O)
 
-    # This will plot the actual grid with objects as black and values as
-    # shades from green to red in increasing numerical order
-    xI = [1,1]
-    xG = [4,3]
-    grid = create_binary_grid(n, m, O)
-    plotValues(grid*values,xI,xG,n,m,O)
-    path = [[2,1],[3,1],[4,1],[4,2],[4,3]]
-    showPath(xI,xG,path,n,m,O)
+    # # This will plot the actual grid with objects as black and values as
+    # # shades from green to red in increasing numerical order
+    # xI = [1,1]
+    # xG = [4,3]
+    # grid = create_binary_grid(n, m, O)
+    # plotValues(grid*values,xI,xG,n,m,O)
+    # path = [[2,1],[3,1],[4,1],[4,2],[4,3]]
+    # showPath(xI,xG,path,n,m,O)
 
     
 
